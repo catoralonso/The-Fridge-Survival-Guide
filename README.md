@@ -20,9 +20,11 @@ and recommends recipes using TF-IDF cosine similarity — built on Google Cloud 
 git clone https://github.com/catoralonso/The-Fridge-Survival-Guide.git
 cd The-Fridge-Survival-Guide
 pip install -r requirements.txt
-export GEMINI_API_KEY="your_key_here"
 python app_gradiov2.py
-```
+
+# Get your project ID and update vision.py
+gcloud config get-value project
+
 
 ## Project Structure
 ```
@@ -31,3 +33,6 @@ vision.py            → Gemini Vision module
 recommender.py       → TF-IDF recommendation engine
 recetas_backend_proceso_ultra.json  → Recipes database
 ```
+
+> **Note:** If running on a new Google Cloud project (e.g. Qwiklabs), 
+> update `PROJECT_ID` in `vision.py` with your project ID before running.
