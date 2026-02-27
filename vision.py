@@ -6,10 +6,15 @@ from vertexai.generative_models import GenerativeModel, Image as VertexImage
 #  CONFIGURACIÓN VERTEX AI
 # ──────────────────────────────────────────────
 
-PROJECT_ID = "qwiklabs-gcp-00-0fac841e62df"
+PROJECT_ID = "qwiklabs-gcp-04-f46aab7b85f0"
 LOCATION = "us-central1"
 
 vertexai.init(project=PROJECT_ID, location=LOCATION)
+import subprocess
+subprocess.run([
+    "gcloud", "services", "enable", "aiplatform.googleapis.com"
+], capture_output=True)
+
 model = GenerativeModel("gemini-2.0-flash-001")
 
 # ──────────────────────────────────────────────
