@@ -5,8 +5,6 @@ import os
 from vision import detect_gemini, clean_ingredients
 from recommender import cargar_recetas, init_vectorizer, recomendar
 
-API_KEY = os.environ.get("GEMINI_API_KEY", "")
-
 # ──────────────────────────────────────────────
 #  CARGA DE DATOS (una sola vez)
 # ──────────────────────────────────────────────
