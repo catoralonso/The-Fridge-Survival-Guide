@@ -52,8 +52,19 @@ h1, h2, h3 {
 
 .block, .panel {
     background-color: #13131f !important;
-    border: 1px solid #1e1e30 !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
     border-radius: 16px !important;
+    box-shadow: 0 0 18px rgba(120,200,255,0.15),
+                0 0 40px rgba(120,200,255,0.06),
+                inset 0 0 20px rgba(120,200,255,0.03) !important;
+    transition: border-color 0.3s, box-shadow 0.3s !important;
+}
+
+.block:hover, .panel:hover {
+    border-color: rgba(255,255,255,0.45) !important;
+    box-shadow: 0 0 28px rgba(120,200,255,0.25),
+                0 0 60px rgba(120,200,255,0.1),
+                inset 0 0 20px rgba(120,200,255,0.05) !important;
 }
 
 .tabs { background: transparent !important; }
@@ -179,8 +190,12 @@ def tarjeta_receta(r):
     n_faltan = len(faltan)
     faltan_txt = ", ".join(faltan) if faltan else "ninguno 🎉"
 
+    import re
+    def limpiar_paso(p):
+        return re.sub(r'^[\d]+[\.\)]\s*', '', p)
+    
     pasos = "".join([
-        f"<li style='margin-bottom:10px; padding-left:4px; color:#c4c0d8; line-height:1.6;'>{p}</li>"
+        f"<li style='margin-bottom:10px; padding-left:4px; color:#c4c0d8; line-height:1.6;'>{limpiar_paso(p)}</li>"
         for p in rec.get("proceso_detallado", [])
     ])
 
@@ -326,6 +341,8 @@ def construir_cards(resultados, nombres_detectados):
 
 
 def analizar_nevera(imagen, n_recetas, min_conf, filtro_tiempo, filtro_faltan):
+    conf_map = {"Bajo": 0.3, "Medio": 0.5, "Alto": 0.9}
+    min_conf = conf_map.get(min_conf, 0.5)
     empty = ("", "<p style='color:#555;text-align:center;padding:40px;font-family:DM Sans,sans-serif;'>Los resultados aparecerán aquí</p>", {}, gr.update(choices=[], value=None))
 
     if imagen is None:
@@ -336,7 +353,7 @@ def analizar_nevera(imagen, n_recetas, min_conf, filtro_tiempo, filtro_faltan):
         tmp_path = tmp.name
 
     try:
-        raw = detect_gemini(tmp_path, API_KEY)
+        raw = detect_gemini(tmp_path)
         cleaned = clean_ingredients(raw, min_confidence=min_conf)
     except Exception as e:
         return "", f"<p style='color:#f87171;padding:20px;'>❌ Error con Gemini: {e}</p>", {}, gr.update(choices=[], value=None)
@@ -410,22 +427,47 @@ def guardar_rating(receta_seleccionada, gusto, relevancia, estado_resultados):
 with gr.Blocks(title="🧊 Fridge Survival Guide", theme=gr.themes.Base(), css=CSS) as demo:
 
     gr.HTML("""
-    <div style="padding:28px 8px 12px;">
-      <h1 style="font-family:'Syne',sans-serif; font-size:2em; font-weight:800; margin:0;
-                 background:linear-gradient(135deg,#a78bfa,#60d9c8);
-                 -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-        🧊 Fridge Survival Guide
-      </h1>
-      <p style="color:#555; margin:6px 0 0; font-size:0.9em; font-family:'DM Sans',sans-serif;">
-        Fotografía tu nevera · Detectamos ingredientes · Te sugerimos recetas
-      </p>
+    <div style="text-align:center; padding:32px 8px 16px;">
+      <div style="display:inline-block; position:relative;">
+        <h1 style="
+          font-family:'Syne',sans-serif;
+          font-size:2.8em;
+          font-weight:800;
+          margin:0;
+          letter-spacing:3px;
+          color:#e8f4f8;
+          text-shadow:
+            0 0 20px rgba(120,200,255,0.6),
+            0 0 40px rgba(100,180,255,0.3),
+            0 2px 4px rgba(0,0,0,0.8);
+          filter: drop-shadow(0 0 8px rgba(150,220,255,0.4));
+        ">
+          🧊 FRIDGE SURVIVAL GUIDE 🧊
+        </h1>
+        <p style="
+          color:#7ab8d4;
+          margin:8px 0 0;
+          font-size:0.88em;
+          letter-spacing:2px;
+          font-family:'DM Sans',sans-serif;
+          text-transform:uppercase;
+          opacity:0.8;
+        ">
+          Fotografía tu nevera · Detectamos ingredientes · Te sugerimos recetas
+        </p>
+        <div style="
+          position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+          width:60%; height:1px;
+          background:linear-gradient(90deg, transparent, rgba(120,200,255,0.5), transparent);
+        "></div>
+      </div>
     </div>
     """)
 
     with gr.Tabs():
 
         # ── TAB 1: FOTO ──
-        with gr.Tab("📸 Analizar foto"):
+        with gr.Tab("Analizar foto"):
 
             with gr.Row(equal_height=False):
 
@@ -440,7 +482,7 @@ with gr.Blocks(title="🧊 Fridge Survival Guide", theme=gr.themes.Base(), css=C
                         n_slider = gr.Slider(1, 10, value=5, step=1, label="Nº recetas")
                         conf_slider = gr.Radio(
                             choices=[("Bajo", 0.3), ("Medio", 0.5), ("Alto", 0.9)],
-                            value=0.5,
+                            value="Medio",
                             label="Sensibilidad",
                         )
                     with gr.Row():
@@ -452,41 +494,33 @@ with gr.Blocks(title="🧊 Fridge Survival Guide", theme=gr.themes.Base(), css=C
                             choices=OPCIONES_FALTAN, value="Todos",
                             label="❌ Ingredientes faltantes"
                         )
-                    analizar_btn = gr.Button("🔍 Analizar nevera", variant="primary", size="lg")
+                    analizar_btn = gr.Button("Analizar nevera", variant="primary", size="lg")
+
+                    gr.HTML("""
+                    <div style="border-top:1px solid rgba(120,200,255,0.1); margin:16px 0 10px;padding-top:12px;">
+                      <p style="font-family:'Syne',sans-serif; font-size:0.72em; font-weight:600;
+                                letter-spacing:1px; color:#4a7a94; margin:0 0 12px;">⭐ VALORAR RECETA</p>
+                    </div>
+                    """)
+                    estado_recetas = gr.State({})
+                    dropdown_receta = gr.Dropdown(choices=[], label="Receta a valorar")
+                    with gr.Row():
+                        radio_gusto = gr.Radio(
+                            choices=["👍 Me gusta", "👎 No me gusta"],
+                            label="¿Te gusta?", scale=1
+                        )
+                        radio_relevancia = gr.Radio(
+                            choices=["Usa lo que tengo", "Me faltan cosas"],
+                            label="¿Es relevante?", scale=1
+                        )
+                    guardar_btn = gr.Button("Guardar valoración", variant="secondary")
+                    rating_msg = gr.HTML("")
 
                 # COLUMNA DERECHA — resultados
                 with gr.Column(scale=1, min_width=340):
                     ingredientes_out = gr.HTML()
                     recetas_out = gr.HTML(
-                        value="<p style='color:#444;text-align:center;padding:40px;font-family:DM Sans,sans-serif;'>Los resultados aparecerán aquí</p>"
-                    )
-
-            # PANEL DE VALORACIÓN
-            gr.HTML("""
-            <div style="border-top:1px solid #1e1e30; margin:24px 0 16px; padding-top:16px;">
-              <p style="font-family:'Syne',sans-serif; font-size:0.75em; font-weight:600;
-                        letter-spacing:1px; color:#555; margin:0 0 14px;">⭐ VALORAR RECETA</p>
-            </div>
-            """)
-
-            estado_recetas = gr.State({})
-
-            with gr.Row():
-                dropdown_receta = gr.Dropdown(
-                    choices=[], label="Receta a valorar", scale=2
-                )
-                radio_gusto = gr.Radio(
-                    choices=["👍 Me gusta", "👎 No me gusta"],
-                    label="¿Te gusta?", scale=1
-                )
-                radio_relevancia = gr.Radio(
-                    choices=["✅ Usa lo que tengo", "❌ Me faltan cosas"],
-                    label="¿Es relevante?", scale=1
-                )
-
-            guardar_btn = gr.Button("💾 Guardar valoración", variant="secondary")
-            rating_msg = gr.HTML("")
-
+                        value="<p style='color:#444;text-align:center;padding:40px;font-family:DM Sans,sans-serif;'>Los resultados aparecerán aquí</p>")
             # Eventos
             analizar_btn.click(
                 fn=analizar_nevera,
@@ -500,7 +534,7 @@ with gr.Blocks(title="🧊 Fridge Survival Guide", theme=gr.themes.Base(), css=C
             )
 
         # ── TAB 2: MANUAL ──
-        with gr.Tab("✏️ Ingredientes manuales"):
+        with gr.Tab("Ingredientes manuales"):
             gr.HTML("""
             <p style="color:#666; font-size:0.9em; margin:8px 0 16px; font-family:'DM Sans',sans-serif;">
               Escribe los ingredientes separados por comas para probar el recomendador sin foto.

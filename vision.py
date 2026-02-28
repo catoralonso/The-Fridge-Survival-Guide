@@ -1,4 +1,5 @@
 import json
+import os
 import vertexai
 from vertexai.generative_models import GenerativeModel, Image as VertexImage
 
@@ -6,8 +7,8 @@ from vertexai.generative_models import GenerativeModel, Image as VertexImage
 #  CONFIGURACIÓN VERTEX AI
 # ──────────────────────────────────────────────
 
-PROJECT_ID = "qwiklabs-gcp-04-f46aab7b85f0"
-LOCATION = "us-central1"
+PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
+LOCATION = os.environ.get("GCP_LOCATION", "us-central1") 
 
 vertexai.init(project=PROJECT_ID, location=LOCATION)
 import subprocess
