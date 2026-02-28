@@ -10,25 +10,13 @@ and recommends recipes using TF-IDF cosine similarity — built on Google Cloud 
 4. Get ranked recipes with step-by-step instructions
 
 ## Tech Stack
-- **Vision:** Google Gemini 1.5 Flash via Vertex AI
+- **Vision:** Google Gemini 2.0 Flash via Vertex AI
 - **Recommendation:** TF-IDF + Cosine Similarity (scikit-learn)
 - **Interface:** Gradio
 - **Cloud:** Google Cloud Vertex AI Workbench
 
 ## Setup
 ```bash
-git clone https://github.com/catoralonso/The-Fridge-Survival-Guide.git
-cd The-Fridge-Survival-Guide
-pip install -r requirements.txt
-python app_gradiov2.py
-
-# Get your project ID and update vision.py
-gcloud config get-value project
-
-
-## Project Structure
-```
-## Setup
 git clone https://github.com/catoralonso/The-Fridge-Survival-Guide.git
 cd The-Fridge-Survival-Guide
 pip install -r requirements.txt
@@ -39,6 +27,3 @@ export GCP_LOCATION="us-central1"
 
 python app_gradiov3.py
 ```
-
-> **Note:** If running on a new Google Cloud project (e.g. Qwiklabs), 
-> update `PROJECT_ID` in `vision.py` with your project ID before running.
