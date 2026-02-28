@@ -278,6 +278,85 @@ button.primary {{
     border-radius: 12px !important;
     font-weight: 700 !important;
 }}
+
+/* Input de imagen */
+.upload-container, .image-container, [data-testid="image"] {{
+    background: {COLORS.BG_SECONDARY} !important;
+    border: 1px solid {COLORS.BORDER_SUBTLE} !important;
+    border-radius: 16px !important;
+}}
+
+/* Zona de drop */
+.upload-container .wrap {{
+    background: {COLORS.BG_SECONDARY} !important;
+    border: 2px dashed {COLORS.BORDER_SUBTLE} !important;
+    border-radius: 16px !important;
+    color: {COLORS.TEXT_MUTED} !important;
+}}
+
+/* Sliders */
+input[type="range"] {{
+    accent-color: {COLORS.ICE_BLUE} !important;
+}}
+
+.gradio-slider {{
+    background: {COLORS.BG_SECONDARY} !important;
+    border: 1px solid {COLORS.BORDER_SUBTLE} !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+}}
+
+/* Dropdowns */
+.gradio-dropdown, select {{
+    background: {COLORS.BG_SECONDARY} !important;
+    border: 1px solid {COLORS.BORDER_SUBTLE} !important;
+    border-radius: 12px !important;
+    color: {COLORS.TEXT_PRIMARY} !important;
+}}
+
+/* Radio buttons */
+.gradio-radio {{
+    background: {COLORS.BG_SECONDARY} !important;
+    border: 1px solid {COLORS.BORDER_SUBTLE} !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+}}
+
+.gradio-radio label {{
+    color: {COLORS.TEXT_PRIMARY} !important;
+}}
+
+/* Labels generales */
+label span {{
+    color: {COLORS.TEXT_SECONDARY} !important;
+}}
+
+/* Bloques contenedores */
+.gradio-block, .block {{
+    background: {COLORS.BG_SECONDARY} !important;
+    border: 1px solid {COLORS.BORDER_SUBTLE} !important;
+    border-radius: 16px !important;
+}}
+
+/* Textbox manual */
+textarea, input[type="text"] {{
+    background: {COLORS.BG_PRIMARY} !important;
+    border: 1px solid {COLORS.BORDER_SUBTLE} !important;
+    color: {COLORS.TEXT_PRIMARY} !important;
+    border-radius: 10px !important;
+}}
+
+/* Eliminar borde gris imagen */
+.gradio-image > .wrap {{
+    border: 1px solid {COLORS.BORDER_SUBTLE} !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+}}
+
+/* Quitar línea separadora */
+fieldset {{
+    border: none !important;
+}}
 """
 
 # =============================================================================
@@ -292,7 +371,7 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
     with gr.Tabs():
 
         # ── TAB 1: FOTO ──────────────────────────────────────────────────────
-        with gr.Tab("📸 Analizar Foto"):
+        with gr.Tab("Analizar Foto"):
             with gr.Row():
 
                 with gr.Column(scale=1, min_width=300):
@@ -302,13 +381,14 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
                         label="Modo",
                     )
                     imagen_input = gr.Image(type="pil", label="Foto de tu nevera", height=260)
+                    analizar_btn = gr.Button("Analizar nevera", variant="primary", size="lg")
                     with gr.Row():
                         n_slider  = gr.Slider(1, 10, value=5, step=1, label="Nº recetas")
                         conf_radio = gr.Radio(["Bajo", "Medio", "Alto"], value="Medio", label="Precisión")
                     with gr.Row():
                         filtro_tiempo  = gr.Dropdown(choices=OPCIONES_TIEMPO, value="Todos", label="⏱ Tiempo máx.")
                         filtro_faltan  = gr.Dropdown(choices=OPCIONES_FALTAN, value="Todos", label="❌ Máx. faltantes")
-                    analizar_btn = gr.Button("🔍 Analizar nevera", variant="primary", size="lg")
+                    
 
                     with gr.Group(visible=False) as val_group:
                         gr.HTML("<hr style='border-color:var(--border-subtle); margin:16px 0;'>")
@@ -339,7 +419,7 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
             )
 
         # ── TAB 2: MANUAL ────────────────────────────────────────────────────
-        with gr.Tab("⌨️ Manual"):
+        with gr.Tab("Manual"):
             with gr.Row():
                 manual_ing   = gr.Textbox(
                     label="Ingredientes (separados por coma)",
@@ -362,7 +442,7 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
 
         # ── TAB 3: ANALYTICS ─────────────────────────────────────────────────
         with gr.Tab("Analytics"):
-            refresh_btn  = gr.Button("🔄 Actualizar dashboard")
+            refresh_btn  = gr.Button("Actualizar dashboard")
             dashboard    = gr.HTML()
             export_btn   = gr.Button("📥 Exportar datos")
             export_txt   = gr.Textbox(

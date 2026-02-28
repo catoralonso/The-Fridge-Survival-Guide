@@ -150,40 +150,41 @@ class UIRenderer:
     
     @classmethod
     def render_header(cls, modo: str = "survival") -> str:
-        """Header principal con título animado."""
-        config = CONFIG.MODES[modo]
-        color = config["color"]
-        
-        return f"""
-        <div class="fridge-container">
-            <div style="text-align: center; padding: 40px 20px 30px; position: relative; z-index: 1;">
-                <div style="display: inline-block; position: relative;">
-                    <div style="
-                        position: absolute;
-                        inset: -20px;
-                        background: radial-gradient(circle, {color}20 0%, transparent 70%);
-                        filter: blur(20px);
-                        animation: pulseGlow 3s ease-in-out infinite;
-                    "></div>
-                    <h1 class="text-hero" style="position: relative;">
-                        {config["icon"]} FRIDGE SURVIVAL GUIDE {config["icon"]}
-                    </h1>
-                    <p style="
-                        color: {color};
-                        margin: 12px 0 0;
-                        font-size: 0.9em;
-                        letter-spacing: 3px;
-                        font-family: var(--font-accent);
-                        text-transform: uppercase;
-                        opacity: 0.8;
-                    ">
-                        {config["description"]}
-                    </p>
-                </div>
-            </div>
-        </div>
-        """
+        config = CONFIG.get_mode(modo)
+        color  = config["color"]
     
+        return f"""
+        <div style="text-align:center; padding:32px 20px 24px;">
+            <h1 style="
+                font-family:'Syne',sans-serif;
+                font-size:2.8em;
+                font-weight:800;
+                margin:0;
+                letter-spacing:3px;
+                color:#e8f4f8;
+                text-shadow:
+                    0 0 20px rgba(120,200,255,0.6),
+                    0 0 40px rgba(100,180,255,0.3);
+            ">
+                {config["icon"]} FRIDGE SURVIVAL GUIDE {config["icon"]}
+            </h1>
+            <p style="
+                color:{color};
+                margin:10px 0 0;
+                font-size:0.88em;
+                letter-spacing:2px;
+                font-family:'DM Sans',sans-serif;
+                text-transform:uppercase;
+                opacity:0.85;
+            ">
+                {config["description"]}
+            </p>
+            <div style="
+                width:60%; height:1px; margin:16px auto 0;
+                background:linear-gradient(90deg, transparent, {color}80, transparent);
+            "></div>
+        </div>
+        """  
     @classmethod
     def render_ingredients_grid(cls, ingredients: List[Any]) -> str:
         """Grid visual de ingredientes detectados."""
@@ -296,7 +297,171 @@ class UIRenderer:
         </div>
         """
     @classmethod
-        def render_recipe_card(cls, rec: Any, modo: str = "survival") -> str:
-            """Tarjeta completa de receta. Acepta objeto Recommendation."""
-            from models import Recommendation
-            import re
+    def render_recipe_card(cls, rec: Any, modo: str = "survival") -> str:
+        """Tarjeta completa de receta. Acepta objeto Recommendation."""
+        from models import Recommendation
+        import re
+
+        recipe     = rec.receta
+        match      = rec.porcentaje_match * 100
+        mode_cfg   = CONFIG.get_mode(modo)
+        color      = mode_cfg["color"]
+
+        if match >= 95:
+            match_color = COLORS.SUCCESS
+            match_label = "Tienes todo ✓"
+        elif match >= 75:
+            match_color = "#a3e635"
+            match_label = f"{match:.0f}% disponible"
+        elif match >= 50:
+            match_color = COLORS.WARNING
+            match_label = f"{match:.0f}% disponible"
+        else:
+            match_color = COLORS.ERROR
+            match_label = f"{match:.0f}% disponible"
+
+        faltan     = [i.item for i in rec.ingredientes_faltantes]
+        faltan_txt = ", ".join(faltan) if faltan else "ninguno 🎉"
+
+        def limpiar_paso(p):
+            return re.sub(r'^[\d]+[\.\)]\s*', '', p)
+
+        pasos_html = "".join(
+            f"<li style='margin-bottom:10px; padding-left:4px; "
+            f"color:{COLORS.TEXT_SECONDARY}; line-height:1.6;'>"
+            f"{limpiar_paso(p)}</li>"
+            for p in recipe.proceso_detallado
+        )
+
+        chef_section = ""
+        if modo == "chef" and mode_cfg.get("show_techniques"):
+            tecnicas_html = ""
+            if recipe.tecnicas:
+                tecnicas_html = f"""
+            <div style="margin-top:12px;">
+                <span class="text-label">Técnicas</span>
+                <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">
+                    {"".join(f'<span style="background:{color}20; color:{color}; '
+                             f'padding:3px 10px; border-radius:20px; font-size:0.8em;">'
+                             f'{t}</span>' for t in recipe.tecnicas)}
+                </div>
+            </div>"""
+
+            maridaje_html = ""
+            if recipe.maridaje:
+                maridaje_html = f"""
+            <div style="margin-top:12px;">
+                <span class="text-label">Maridaje</span>
+                <p style="color:{COLORS.TEXT_SECONDARY}; margin:4px 0 0; font-size:0.9em;">
+                    🍷 {recipe.maridaje}
+                </p>
+            </div>"""
+
+            presentacion_html = ""
+            if recipe.presentacion:
+                presentacion_html = f"""
+            <div style="margin-top:12px;">
+                <span class="text-label">Presentación</span>
+                <p style="color:{COLORS.TEXT_SECONDARY}; margin:4px 0 0; font-size:0.9em;">
+                    🍽️ {recipe.presentacion}
+                </p>
+            </div>"""
+
+            chef_notes_html = ""
+            if recipe.chef_notes:
+                chef_notes_html = f"""
+            <div style="margin-top:12px; padding:12px; background:{color}10;
+                        border-left:3px solid {color}; border-radius:0 8px 8px 0;">
+                <span class="text-label">Nota del Chef</span>
+                <p style="color:{COLORS.TEXT_PRIMARY}; margin:4px 0 0; font-size:0.9em;
+                           font-style:italic;">
+                    👨‍🍳 {recipe.chef_notes}
+                </p>
+            </div>"""
+
+            chef_section = tecnicas_html + maridaje_html + presentacion_html + chef_notes_html
+
+        recipe_id = recipe.nombre.replace(" ", "_").replace("/", "_").lower()
+
+        return f"""
+        <div class="glass-panel fade-in" style="margin-bottom:16px; padding:0; overflow:hidden;">
+            <div style="height:3px; background:linear-gradient(90deg, {color}, {match_color});"></div>
+            <div onclick="
+                var b=document.getElementById('body_{recipe_id}');
+                var a=document.getElementById('arrow_{recipe_id}');
+                if(b.style.display==='none'){{b.style.display='block';a.textContent='▲';}}
+                else{{b.style.display='none';a.textContent='▼';}}"
+                style="padding:20px 24px; cursor:pointer; display:flex;
+                       justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-family:{TYPO.DISPLAY}; font-size:1.15em;
+                                font-weight:700; color:{COLORS.TEXT_PRIMARY};">
+                        {recipe.nombre}
+                    </div>
+                    <div style="margin-top:6px; display:flex; gap:10px; flex-wrap:wrap;">
+                        <span style="font-family:{TYPO.DATA}; font-size:0.75em;
+                                     color:{COLORS.TEXT_MUTED};">
+                            ⏱ {recipe.tiempo_min or '?'} min
+                        </span>
+                        <span style="font-family:{TYPO.DATA}; font-size:0.75em;
+                                     color:{COLORS.TEXT_MUTED};">
+                            📊 {(recipe.dificultad or 'N/A').title()}
+                        </span>
+                        <span style="font-family:{TYPO.DATA}; font-size:0.75em;
+                                     color:{COLORS.TEXT_MUTED};">
+                            🔥 {recipe.calorias_aprox or '?'} kcal
+                        </span>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div style="text-align:right;">
+                        <div style="font-family:{TYPO.DATA}; font-size:0.75em;
+                                    color:{match_color}; margin-bottom:4px;">
+                            {match_label}
+                        </div>
+                        <div style="width:100px; background:{COLORS.BG_TERTIARY};
+                                    border-radius:99px; height:5px; overflow:hidden;">
+                            <div style="background:{match_color}; width:{match:.0f}%;
+                                        height:100%; border-radius:99px;"></div>
+                        </div>
+                    </div>
+                    <span id="arrow_{recipe_id}" style="color:{COLORS.TEXT_MUTED};
+                          font-size:0.8em;">▼</span>
+                </div>
+            </div>
+            <div id="body_{recipe_id}" style="display:none; padding:0 24px 24px;
+                 border-top:1px solid {COLORS.BORDER_SUBTLE};">
+                <div style="margin-top:16px; padding:12px 16px;
+                            background:{COLORS.BG_TERTIARY}; border-radius:10px;">
+                    <span class="text-label">Te faltan</span>
+                    <p style="margin:4px 0 0; font-size:0.9em;
+                              color:{'#34d399' if not faltan else COLORS.WARNING};">
+                        {faltan_txt}
+                    </p>
+                </div>
+                <div style="margin-top:16px;">
+                    <span class="text-label">Preparación</span>
+                    <ol style="margin:10px 0 0; padding-left:20px;">
+                        {pasos_html}
+                    </ol>
+                </div>
+                {chef_section}
+            </div>
+        </div>
+        """
+
+    @classmethod
+    def render_recipes_list(cls, recommendations: List[Any], modo: str = "survival") -> str:
+        """Renderiza lista completa de recomendaciones."""
+        if not recommendations:
+            return cls.render_empty_state("No encontramos recetas con esos ingredientes")
+
+        cards = "".join(cls.render_recipe_card(r, modo) for r in recommendations)
+        return f"""
+        <div class="fade-in">
+            <div class="text-label" style="margin-bottom:16px;">
+                🍽️ {len(recommendations)} recetas encontradas
+            </div>
+            {cards}
+        </div>
+        """

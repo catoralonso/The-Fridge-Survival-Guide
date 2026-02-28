@@ -18,23 +18,28 @@ AI-powered fridge assistant that detects ingredients from a photo using Gemini V
 - **Cloud:** Google Cloud Vertex AI Workbench
 
 ## Setup
-
 ```bash
+# 1. Clone the repo
 git clone https://github.com/catoralonso/The-Fridge-Survival-Guide.git
 cd The-Fridge-Survival-Guide
 pip install -r requirements.txt
 
-# Set your Google Cloud project before running
-export GOOGLE_CLOUD_PROJECT=your-project-id
+# 2. Google Cloud authentication
+gcloud auth login
+gcloud auth application-default login
 
+# 3. Enable Vertex AI API
+gcloud services enable aiplatform.googleapis.com
+
+# 4. Set project
+export GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project)
+
+# 5. Launch
 python app_gradiov4.py
 ```
 
-> **Note:** If running on a new Qwiklabs lab, just update the environment variable — no code changes needed.
-> ```bash
-> export GOOGLE_CLOUD_PROJECT=qwiklabs-gcp-xx-xxxxxxxxxx
-> ```
-
+> **Note:** On a new Qwiklabs lab the API takes 2-3 minutes to activate after step 3.
+> The app will enable it automatically on startup, but wait a few minutes before uploading a photo.
 ## Project Structure
 
 ```
