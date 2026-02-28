@@ -302,10 +302,12 @@ button.primary {{
 /* Labels todos celestes */
 label span {{
     color: {COLORS.ICE_BLUE} !important;
-    font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.82em !important;
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 0.75em !important;
     font-weight: 500 !important;
-    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    opacity: 0.85 !important;
 }}
 
 /* Quitar fondo gris interno de grupos y fieldsets */
@@ -367,43 +369,46 @@ input[type="range"] {{
 
 with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base(), css=CSS_CUSTOM) as demo:
 
-    header     = gr.HTML(renderer.render_header("survival"))
+    header      = gr.HTML(renderer.render_header("survival"))
     estado_vals = gr.State({})
 
     with gr.Tabs():
 
         # ── TAB 1: FOTO ──────────────────────────────────────────────────────
-        with gr.Tab("Analizar Foto"):
+        with gr.Tab("📸 Analizar Foto"):
             with gr.Row():
 
-                with gr.Column(scale=1, min_width=300):
-                    modo_radio = gr.Radio(
+                # COLUMNA 1 — Modo e imagen
+                with gr.Column(scale=1, min_width=250):
+                    modo_radio   = gr.Radio(
                         choices=["survival", "chef"],
                         value="survival",
                         label="Modo",
                     )
-                    imagen_input = gr.Image(type="pil", label="Foto de tu nevera", height=260)
-                    analizar_btn = gr.Button("Analizar nevera", variant="primary", size="lg")
-                with gr.Row():
-                    n_slider  = gr.Slider(1, 10, value=5, step=1, label="Nº recetas")
-                    conf_radio = gr.Radio(["Bajo", "Medio", "Alto"], value="Medio", label="Precisión")
-                with gr.Row():
-                    filtro_tiempo  = gr.Dropdown(choices=OPCIONES_TIEMPO, value="Todos", label="⏱ Tiempo máx.")
-                    filtro_faltan  = gr.Dropdown(choices=OPCIONES_FALTAN, value="Todos", label="❌ Máx. faltantes")
-                    
+                    imagen_input = gr.Image(type="pil", label="Foto de tu nevera", height=300)
+                    analizar_btn = gr.Button("🔍 Analizar nevera", variant="primary", size="lg")
+
+                # COLUMNA 2 — Filtros y valoración
+                with gr.Column(scale=1, min_width=200):
+                    n_slider      = gr.Slider(1, 10, value=5, step=1, label="Nº recetas")
+                    conf_radio    = gr.Radio(["Bajo", "Medio", "Alto"], value="Medio", label="Precisión")
+                    filtro_tiempo = gr.Dropdown(choices=OPCIONES_TIEMPO, value="Todos", label="⏱ Tiempo máx.")
+                    filtro_faltan = gr.Dropdown(choices=OPCIONES_FALTAN, value="Todos", label="❌ Máx. faltantes")
 
                     with gr.Group(visible=False) as val_group:
-                        gr.HTML("<hr style='border-color:var(--border-subtle); margin:16px 0;'>")
+                        gr.HTML("<hr style='border-color:rgba(125,211,252,0.1); margin:16px 0;'>")
                         receta_dd   = gr.Dropdown(choices=[], label="⭐ Valorar receta")
                         gusto_radio = gr.Radio(["👍 Me gusta", "👎 No me gusta"], label="¿Te gustó?")
                         rel_radio   = gr.Radio(["Usa lo que tengo", "Me faltan cosas"], label="¿Es relevante?")
                         guardar_btn = gr.Button("Guardar valoración", variant="secondary")
                         msg_val     = gr.HTML()
 
+                # COLUMNA 3 — Resultados
                 with gr.Column(scale=2, min_width=400):
                     out_ing = gr.HTML()
                     out_rec = gr.HTML(value=renderer.render_empty_state())
 
+            # Eventos TAB 1
             analizar_btn.click(
                 fn=analizar_nevera,
                 inputs=[imagen_input, n_slider, conf_radio, filtro_tiempo, filtro_faltan, modo_radio],
@@ -421,9 +426,9 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
             )
 
         # ── TAB 2: MANUAL ────────────────────────────────────────────────────
-        with gr.Tab("Manual"):
+        with gr.Tab("⌨️ Manual"):
             with gr.Row():
-                manual_ing   = gr.Textbox(
+                manual_ing = gr.Textbox(
                     label="Ingredientes (separados por coma)",
                     placeholder="huevo, tomate, queso...",
                     lines=2, scale=3,
@@ -432,9 +437,9 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
             with gr.Row():
                 filtro_tiempo_m = gr.Dropdown(choices=OPCIONES_TIEMPO, value="Todos", label="⏱ Tiempo máx.")
                 filtro_faltan_m = gr.Dropdown(choices=OPCIONES_FALTAN, value="Todos", label="❌ Máx. faltantes")
-            modo_manual  = gr.Radio(choices=["survival", "chef"], value="survival", label="Modo")
-            manual_btn   = gr.Button("🍳 Buscar recetas", variant="primary")
-            manual_out   = gr.HTML()
+            modo_manual = gr.Radio(choices=["survival", "chef"], value="survival", label="Modo")
+            manual_btn  = gr.Button("🍳 Buscar recetas", variant="primary")
+            manual_out  = gr.HTML()
 
             manual_btn.click(
                 fn=recomendar_manual,
@@ -443,11 +448,11 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
             )
 
         # ── TAB 3: ANALYTICS ─────────────────────────────────────────────────
-        with gr.Tab("Analytics"):
-            refresh_btn  = gr.Button("Actualizar dashboard")
-            dashboard    = gr.HTML()
-            export_btn   = gr.Button("📥 Exportar datos")
-            export_txt   = gr.Textbox(
+        with gr.Tab("📊 Analytics"):
+            refresh_btn = gr.Button("🔄 Actualizar dashboard")
+            dashboard   = gr.HTML()
+            export_btn  = gr.Button("📥 Exportar datos")
+            export_txt  = gr.Textbox(
                 label="Copia esto antes de destruir el VM",
                 lines=10,
             )
@@ -461,10 +466,6 @@ with gr.Blocks(title="🧊 Fridge Survival Guide Pro 🧊", theme=gr.themes.Base
     </div>
     """)
 
-
-# =============================================================================
-# LANZAR
-# =============================================================================
 
 if __name__ == "__main__":
     demo.launch(
