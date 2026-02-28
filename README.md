@@ -28,10 +28,16 @@ gcloud config get-value project
 
 ## Project Structure
 ```
-app_gradiov2.py      → Gradio interface
-vision.py            → Gemini Vision module
-recommender.py       → TF-IDF recommendation engine
-recetas_backend_proceso_ultra.json  → Recipes database
+## Setup
+git clone https://github.com/catoralonso/The-Fridge-Survival-Guide.git
+cd The-Fridge-Survival-Guide
+pip install -r requirements.txt
+
+# Configura tu proyecto de Google Cloud
+export GCP_PROJECT_ID=$(gcloud config get-value project)
+export GCP_LOCATION="us-central1"
+
+python app_gradiov3.py
 ```
 
 > **Note:** If running on a new Google Cloud project (e.g. Qwiklabs), 
